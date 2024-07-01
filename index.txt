@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XRPL Xaman Wallet Connection</title>
+    <script src="https://unpkg.com/xrpl@2.7.0/build/xrpl-latest-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+    <h1>XRPL Xaman Wallet Connection</h1>
+    <button id="generateQRButton">QRコードを生成</button>
+    <div id="qrcode"></div>
+    <div id="reader"></div>
+    <p id="connectionStatus"></p>
+
+    <script>
+        const generateQRButton = document.getElementById('generateQRButton');
+        const connectionStatus = document.getElementById('connectionStatus');
+        let xrpAddress = '';
+
+        generateQRButton.addEventListener('click', () => {
+            const qrCodeData = JSON.stringify({
+                command: 'sign',
+                params: {
+                    txjson: {
+                        TransactionType: 'Payment',
+                        Amount: '1000000', // 1 XRP in drops
+                        Destination: 'rPEPPER7kfTD9w2To4CQk6UCfuHM9c6GDY' // 任意のアドレスに変更可能
+                    }
+                }
+            });
+
+            new QRCode(document.getElementById("qrcode"), qrCodeData);
+
+            startQRCodeScanner();
+        });
+
+        function startQRCodeScanner() {
+            const html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", { fps: 10, qrbox: 250 });
+            
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            try {
+                const scannedData = JSON.parse(decodedText);
+                if (scannedData.result && scannedData.result.account) {
+                    xrpAddress = scannedData.result.account;
+                    connectionStatus.textContent = `XRPアドレスを取得しました: ${xrpAddress}`;
+                    connectToXRPL(xrpAddress);
+                }
+            } catch (error) {
+                console.error('QRコードの解析に失敗しました:', error);
+            }
+        }
+
+        async function connectToXRPL(address) {
+            try {
+                const client = new xrpl.Client('wss://xrplcluster.com');
+                await client.connect();
+
+                const result = await client.request({
+                    command: 'account_info',
+                    account: address,
+                });
+
+                connectionStatus.textContent += '\nXamanウォレットに接続しました！';
+                console.log('接続成功:', result);
+
+                await client.disconnect();
+            } catch (error) {
+                connectionStatus.textContent += '\n接続に失敗しました。';
+                console.error('エラー:', error);
+            }
+        }
+    </script>
+</body>
+</html>
