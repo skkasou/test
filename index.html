@@ -3,78 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XRPL Xaman Wallet Connection</title>
-    <script src="https://unpkg.com/xrpl@2.7.0/build/xrpl-latest-min.js"></script>
+    <title>Xaman Wallet Address Retrieval</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/xrpl@2.7.0/build/xrpl-latest-min.js"></script>
 </head>
 <body>
-    <h1>XRPL Xaman Wallet Connection</h1>
+    <h1>Xaman Wallet Address Retrieval</h1>
     <button id="generateQRButton">QRコードを生成</button>
     <div id="qrcode"></div>
-    <div id="reader"></div>
-    <p id="connectionStatus"></p>
+    <p id="addressDisplay"></p>
 
     <script>
         const generateQRButton = document.getElementById('generateQRButton');
-        const connectionStatus = document.getElementById('connectionStatus');
-        let xrpAddress = '';
+        const addressDisplay = document.getElementById('addressDisplay');
+        const qrcodeContainer = document.getElementById('qrcode');
 
-        generateQRButton.addEventListener('click', () => {
-            const qrCodeData = JSON.stringify({
-                command: 'sign',
-                params: {
-                    txjson: {
-                        TransactionType: 'Payment',
-                        Amount: '1000000', // 1 XRP in drops
-                        Destination: 'rPEPPER7kfTD9w2To4CQk6UCfuHM9c6GDY' // 任意のアドレスに変更可能
-                    }
+        generateQRButton.addEventListener('click', generateQRCode);
+
+        function generateQRCode() {
+            const uuid = generateUUID();
+            const qrCodeData = {
+                "TransactionType": "SignIn",
+                "SignInData": {
+                    "domain": window.location.hostname,
+                    "uuid": uuid
                 }
+            };
+
+            qrcodeContainer.innerHTML = '';
+            new QRCode(qrcodeContainer, JSON.stringify(qrCodeData));
+
+            pollForAddress(uuid);
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
             });
-
-            new QRCode(document.getElementById("qrcode"), qrCodeData);
-
-            startQRCodeScanner();
-        });
-
-        function startQRCodeScanner() {
-            const html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", { fps: 10, qrbox: 250 });
-            
-            html5QrcodeScanner.render(onScanSuccess);
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
-            try {
-                const scannedData = JSON.parse(decodedText);
-                if (scannedData.result && scannedData.result.account) {
-                    xrpAddress = scannedData.result.account;
-                    connectionStatus.textContent = `XRPアドレスを取得しました: ${xrpAddress}`;
-                    connectToXRPL(xrpAddress);
-                }
-            } catch (error) {
-                console.error('QRコードの解析に失敗しました:', error);
-            }
-        }
+        function pollForAddress(uuid) {
+            // Note: This is a mock implementation. In a real-world scenario,
+            // you would need to implement server-side polling.
+            addressDisplay.textContent = "QRコードをスキャンしてください...";
 
-        async function connectToXRPL(address) {
-            try {
-                const client = new xrpl.Client('wss://xrplcluster.com');
-                await client.connect();
-
-                const result = await client.request({
-                    command: 'account_info',
-                    account: address,
-                });
-
-                connectionStatus.textContent += '\nXamanウォレットに接続しました！';
-                console.log('接続成功:', result);
-
-                await client.disconnect();
-            } catch (error) {
-                connectionStatus.textContent += '\n接続に失敗しました。';
-                console.error('エラー:', error);
-            }
+            // Simulate a delay for demonstration purposes
+            setTimeout(() => {
+                // This is where you would normally check with your server
+                // if the user has scanned the QR code and authorized the sign-in
+                const mockAddress = "rSomeXRPAddressHereXXXXXXXXXXX";
+                addressDisplay.textContent = `Xaman Wallet Address: ${mockAddress}`;
+            }, 10000); // 10 seconds delay for demonstration
         }
     </script>
 </body>
