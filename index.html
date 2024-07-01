@@ -3,43 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xaman Wallet Authentication</title>
-    <script src="https://unpkg.com/xrpl-client"></script>
+    <title>Xaman Wallet Connection</title>
+    <script src="https://unpkg.com/xumm-sdk/dist/browser.min.js"></script>
 </head>
 <body>
-    <h1>Xaman Wallet Authentication</h1>
+    <h1>Xaman Wallet Connection</h1>
     <button id="connectButton">Xamanウォレットに接続</button>
-    <p id="addressDisplay"></p>
+    <p id="statusMessage"></p>
 
     <script>
         const connectButton = document.getElementById('connectButton');
-        const addressDisplay = document.getElementById('addressDisplay');
+        const statusMessage = document.getElementById('statusMessage');
 
-        connectButton.addEventListener('click', connectWallet);
+        // Xamanアプリの API キーを設定
+        const apiKey = '76f3b336-b7d0-4210-a8e5-aa2bacbd8ce2';
 
-        async function connectWallet() {
+        // XummSdk インスタンスを作成
+        const xumm = new XummSdk(apiKey);
+
+        connectButton.addEventListener('click', async () => {
             try {
-                // XRPLクライアントの初期化
-                const client = new xrplClient('wss://xrplcluster.com');
+                statusMessage.textContent = '接続中...';
 
-                // ウォレット接続のリクエスト
-                const result = await client.send({
-                    command: 'wallet_propose'
-                });
+                // ペイロードを作成
+                const payload = {
+                    txjson: {
+                        TransactionType: 'SignIn'
+                    }
+                };
 
-                if (result && result.account_id) {
-                    addressDisplay.textContent = `Xaman Wallet Address: ${result.account_id}`;
+                // ペイロードを送信
+                const payloadResponse = await xumm.payload.create(payload);
+
+                // QRコードのURLを取得
+                const qrCodeUrl = payloadResponse.next.always;
+
+                // ここでQRコードを表示するか、ユーザーにURLを提供します
+                statusMessage.innerHTML = `QRコードをスキャンしてください：<br><img src="${qrCodeUrl}" alt="QR Code">`;
+
+                // ペイロードの結果を待つ
+                const payloadResult = await xumm.payload.get(payloadResponse.uuid);
+
+                if (payloadResult.meta.signed) {
+                    const userToken = payloadResult.application.issued_user_token;
+                    statusMessage.textContent = `接続成功！ユーザートークン: ${userToken}`;
                 } else {
-                    addressDisplay.textContent = 'ウォレットアドレスの取得に失敗しました。';
+                    statusMessage.textContent = '接続がキャンセルされました。';
                 }
-
-                // クライアントの切断
-                client.disconnect();
             } catch (error) {
-                console.error('Error:', error);
-                addressDisplay.textContent = '接続エラーが発生しました。';
+                console.error('エラー:', error);
+                statusMessage.textContent = '接続エラーが発生しました。';
             }
-        }
+        });
     </script>
 </body>
 </html>
