@@ -3,58 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xaman Wallet Connection</title>
-    <script src="https://unpkg.com/xumm-sdk/dist/browser.min.js"></script>
+    <title>メイフラちゃんプロジェクト</title>
+    <link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&family=Zen+Maru+Gothic:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css">
+    <style>
+        /* スタイルは変更なし */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            height: 100%;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #FF69B4;
+            color: white;
+            padding: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            box-sizing: border-box;
+        }
+        .main-content {
+            margin-left: 200px;
+            width: calc(100% - 200px);
+            position: relative;
+            overflow: hidden;
+        }
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('image/00001-58265549.png');
+            background-size: cover;
+            background-position: center;
+        }
+        .project-title {
+            position: absolute;
+            top: -100;
+            right: 0;
+            z-index: 5;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.5s forwards;
+        }
+        .logo-image {
+            max-width: 600px;
+            height: auto;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.7));
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .video-container {
+            position: fixed;
+            bottom: 0;
+            left: 200px;
+            width: calc(100% - 200px);
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+        .video-slider {
+            width: 100%;
+        }
+        .video-item {
+            padding: 0 10px;
+        }
+        .video-item video {
+            width: 100%;
+            height: auto;
+            max-height: 180px;
+            object-fit: cover;
+            border: 3px solid #FF69B4;
+            border-radius: 10px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .menu {
+            list-style-type: none;
+            padding: 0;
+            flex-grow: 1;
+        }
+        .menu li {
+            margin-bottom: 15px;
+        }
+        .menu a {
+            color: #FFD700;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        .menu a:hover {
+            text-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700, 0 0 15px #FFD700;
+        }
+        .social-icons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .social-icons a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .social-icons a:hover {
+            transform: scale(1.2);
+        }
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1001;
+            background-color: #FF69B4;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 105, 180, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .music-control:hover {
+            background-color: rgba(255, 105, 180, 1);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -200px;
+                transition: left 0.3s ease;
+            }
+            .sidebar.active {
+                left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .project-title {
+                top: 0;
+                right: 0;
+            }
+            .logo-image {
+                max-width: 300px;
+            }
+            .video-container {
+                left: 0;
+                width: 100%;
+            }
+            .video-item video {
+                max-height: 120px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Xaman Wallet Connection</h1>
-    <button id="connectButton">Xamanウォレットに接続</button>
-    <p id="statusMessage"></p>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="logo">メイフラちゃん<br>プロジェクト</div>
+            <ul class="menu">
+                <li><a href="#">ニュース</a></li>
+                <li><a href="xrp.html">概要</a></li>
+                <li><a href="hub.html">XRPLhub</a></li>
+                <li><a href="vtube.html">Vtuber配信</a></li>
+                <li><a href="profile.html">特集</a></li>
+                <li><a href="https://suzuri.jp/meifura-chan?utm_source=others&utm_medium=social&utm_campaign=shop_share" target="_blank">グッズ</a></li>
+                <li><a href="team.html">チーム</a></li>
+                <li><a href="quiz.html">クイズ</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="https://twitter.com/mayflower3096" target="_blank" title="Twitter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="https://www.youtube.com/@meifura-chan" target="_blank" title="YouTube">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.38.45A3.02 3.02 0 0 0 .5 6.19C.06 8.03 0 10.03 0 12s.06 3.97.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.8.45 9.38.45 9.38.45s7.58 0 9.38-.45a3.02 3.02 0 0 0 2.12-2.14c.44-1.84.5-3.84.5-5.81s-.06-3.97-.5-5.81zM9.54 15.57V8.43L15.82 12l-6.28 3.57z"/></svg>
+                </a>
+                <a href="https://www.tiktok.com/@xrplx2" target="_blank" title="TikTok">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02c.08 1.53.63 3.09 1.75 4.17c1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97c-.57-.26-1.1-.59-1.62-.93c-.01 2.92.01 5.84-.02 8.75c-.08 1.4-.54 2.79-1.35 3.94c-1.31 1.92-3.58 3.17-5.91 3.21c-1.43.08-2.86-.31-4.08-1.03c-2.02-1.19-3.44-3.37-3.65-5.71c-.02-.5-.03-1-.01-1.49c.18-1.9 1.12-3.72 2.58-4.96c1.66-1.44 3.98-2.13 6.15-1.72c.02 1.48-.04 2.96-.04 4.44c-.99-.32-2.15-.23-3.02.37c-.63.41-1.11 1.04-1.36 1.75c-.21.51-.15 1.07-.14 1.61c.24 1.64 1.82 3.02 3.5 2.87c1.12-.01 2.19-.66 2.77-1.61c.19-.33.4-.67.41-1.06c.1-1.79.06-3.57.07-5.36c.01-4.03-.01-8.05.02-12.07z"/></svg>
+                </a>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="background-image"></div>
+            <div class="project-title">
+                <img src="image/logo.png" alt="メイフラちゃんプロジェクト" class="logo-image">
+            </div>
+        </div>
+    </div>
+    <div class="video-container">
+        <div class="video-slider">
+            <div class="video-item">
+                <video controls playsinline>
+                    <source src="videos/Produce_46.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="video-item">
+                <video controls playsinline>
+                    <source src="videos/My Project_24.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+    <button class="music-control" id="musicControl" onclick="toggleMusic()">♪</button>
+    
+    <audio id="bgMusic" loop>
+        <source src="music1" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
     <script>
-        const connectButton = document.getElementById('connectButton');
-        const statusMessage = document.getElementById('statusMessage');
-
-        // Xamanアプリの API キーを設定
-        const apiKey = '76f3b336-b7d0-4210-a8e5-aa2bacbd8ce2';
-
-        // XummSdk インスタンスを作成
-        const xumm = new XummSdk(76f3b336-b7d0-4210-a8e5-aa2bacbd8ce2);
-
-        connectButton.addEventListener('click', async () => {
-            try {
-                statusMessage.textContent = '接続中...';
-
-                // ペイロードを作成
-                const payload = {
-                    txjson: {
-                        TransactionType: 'SignIn'
-                    }
-                };
-
-                // ペイロードを送信
-                const payloadResponse = await xumm.payload.create(payload);
-
-                // QRコードのURLを取得
-                const qrCodeUrl = payloadResponse.next.always;
-
-                // ここでQRコードを表示するか、ユーザーにURLを提供します
-                statusMessage.innerHTML = `QRコードをスキャンしてください：<br><img src="${qrCodeUrl}" alt="QR Code">`;
-
-                // ペイロードの結果を待つ
-                const payloadResult = await xumm.payload.get(payloadResponse.uuid);
-
-                if (payloadResult.meta.signed) {
-                    const userToken = payloadResult.application.issued_user_token;
-                    statusMessage.textContent = `接続成功！ユーザートークン: ${userToken}`;
+        function toggleMenu() {
+            var sidebar = document.getElementById("sidebar");
+            var mainContent = document.querySelector(".main-content");
+            var videoContainer = document.querySelector(".video-container");
+            sidebar.classList.toggle("active");
+            
+            if (window.innerWidth <= 768) {
+                if (sidebar.classList.contains("active")) {
+                    mainContent.style.marginLeft = "200px";
+                    videoContainer.style.left = "200px";
+                    videoContainer.style.width = "calc(100% - 200px)";
                 } else {
-                    statusMessage.textContent = '接続がキャンセルされました。';
+                    mainContent.style.marginLeft = "0";
+                    videoContainer.style.left = "0";
+                    videoContainer.style.width = "100%";
                 }
-            } catch (error) {
-                console.error('エラー:', error);
-                statusMessage.textContent = '接続エラーが発生しました。';
             }
+        }
+
+        $(document).ready(function(){
+            $('.video-slider').slick({
+                slidesToShow: 2,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1
+                        }
+                    }
+                ]
+            });
         });
+
+        var music = document.getElementById("bgMusic");
+        var musicControl = document.getElementById("musicControl");
+        var isPlaying = false;
+
+        function toggleMusic() {
+            if (isPlaying) {
+                music.pause();
+                musicControl.textContent = "♪";
+            } else {
+                music.play();
+                musicControl.textContent = "◼";
+            }
+            isPlaying = !isPlaying;
+        }
     </script>
 </body>
 </html>
